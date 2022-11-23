@@ -38,6 +38,23 @@ def gradosToRadianes(grados):
 def radianesToGrados(radianes):
    return radianes / (2 * math.pi / 360)
 
+def pos(angulo):
+  f = 1 if angulo > 0 else -1
+  k = math.cos(gradosToRadianes(angulo))
+  h = math.sin(gradosToRadianes(angulo))
+  c = radianesToGrados(math.atan(GNOMON_WIDTH / (2 * GNOMON_X_POS))) * f
+  l = math.sqrt(pow(GNOMON_WIDTH/2, 2) + pow(GNOMON_X_POS, 2))
+  g = math.cos(gradosToRadianes(90 - angulo + c))
+  r = RADIO - FIVE_MIN_PTS_GAP
+  i = pow(l, 2) * pow(g, 2) - pow(l, 2) + pow(r, 2)
+  s = math.sqrt(i)
+  u = (GNOMON_WIDTH / 2) * f
+  j = l * g + s 
+  x = k * j + u
+  y = h * j - GNOMON_X_POS
+  return {'x': x, 'y': y}
+
+
 def lineKind(index, stepsHour):
   lineKinds = ['h', 'm', 'd', 'u']
   default = 'u'
@@ -169,8 +186,6 @@ for x in range(TOTAL_LINEAS):
     valor = SIN * math.tan(gradosToRadianes(valorAngulo))
     angulo = radianesToGrados(math.atan(valor))
 
-    anguloPuntosCirculo = round(90 - angulo, 2)
-
     COEF = 1
 
     if(angulo < 0):
@@ -180,7 +195,7 @@ for x in range(TOTAL_LINEAS):
 
     anguloFinal = round(360 - angulo, 2)
 
-    
+    anguloFinalPuntos = round(90 - angulo, 2)
 
     a = XDEV - (XDEV * math.cos(gradosToRadianes(360 - anguloFinal))) + (grosor / 2 - XDEV)
     b = XDEV * math.sin(gradosToRadianes(360 - anguloFinal)) - GNOMON_X_POS
@@ -190,10 +205,11 @@ for x in range(TOTAL_LINEAS):
     k = GNOMON_X_POS * -1
 
     if(x % 2 != 0):
-      cosx = math.cos(gradosToRadianes(anguloPuntosCirculo))
-      sinx = math.sin(gradosToRadianes(anguloPuntosCirculo))
-      posXcircle = cosx * (RADIO + 90 - FIVE_MIN_PTS_GAP) + (GNOMON_WIDTH / 2)
-      posYcircle = sinx * (RADIO + 90 - FIVE_MIN_PTS_GAP) - 90
+
+      coords = pos(anguloFinalPuntos)
+      posXcircle = coords['x']
+      posYcircle = coords['y']
+
       pl = FreeCAD.Placement()
       pl.Rotation.Q=(0.0, 0.0, 0.0, 1.0)
       pl.Base=FreeCAD.Vector(posXcircle, posYcircle, 0.0)
